@@ -33,7 +33,14 @@ class GameClient:
         """Se connecte au serveur"""
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # Définir le timeout pour éviter de bloquer indéfiniment
+            self.socket.settimeout(10)  # 10 secondes
+            # Réutiliser l'adresse en cas de reconnexion rapide
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            
+            print(f"[CLIENT] Tentative de connexion à {self.server_host}:{self.server_port}...")
             self.socket.connect((self.server_host, self.server_port))
+            self.socket.settimeout(None)  # Retirer le timeout après connexion réussie
             self.connected = True
             print(f"[CLIENT] Connecté à {self.server_host}:{self.server_port}")
             
@@ -48,8 +55,19 @@ class GameClient:
             threading.Thread(target=self._receive_messages, daemon=True).start()
             
             return True
+        except socket.timeout:
+            print(f"[CLIENT] Erreur de connexion: Timeout - Le serveur n'a pas répondu dans les 10 secondes")
+            print(f"[CLIENT] Vérifiez que le serveur est lancé sur {self.server_host}:{self.server_port}")
+            self.connected = False
+            return False
+        except ConnectionRefusedError:
+            print(f"[CLIENT] Erreur de connexion: Connexion refusée")
+            print(f"[CLIENT] Le serveur n'écoute pas sur {self.server_host}:{self.server_port}")
+            self.connected = False
+            return False
         except Exception as e:
             print(f"[CLIENT] Erreur de connexion: {e}")
+            print(f"[CLIENT] Impossible de joindre {self.server_host}:{self.server_port}")
             self.connected = False
             return False
     
