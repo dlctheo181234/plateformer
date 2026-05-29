@@ -275,7 +275,9 @@ class GameRenderer:
                 pygame.draw.rect(self.screen, color_tuple, body_rect)
                 
                 # Contour si c'est notre joueur
-                if pid == self.client.player_id:
+                with self.client.lock:
+                    is_my_player = (pid == self.client.player_id)
+                if is_my_player:
                     pygame.draw.rect(self.screen, (255, 255, 255), (int(player.x), int(player.y), PLAYER_WIDTH, PLAYER_HEIGHT), 2)
                 
                 # Afficher les infos du joueur
