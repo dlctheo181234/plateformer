@@ -164,7 +164,7 @@ Le serveur a atteint le nombre maximum de joueurs (4). Attendez qu'un joueur se 
 - [ ] Mode de jeu personnalisé
 
 ## Auteur
-
+Moi et pas toi
 Jeu développé avec Python et Pygame.
 
 ## Licence
