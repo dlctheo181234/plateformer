@@ -95,14 +95,15 @@ class GameClient:
     
     def _handle_join_success(self, data):
         """Traite la confirmation de jointure"""
-        self.player_id = data['player_id']
-        player_dict = data['player']
-        self.my_player = Player(**player_dict)
-        self.players[self.player_id] = player_dict
-        
-        # Recréer les rects des plateformes
-        for plat_data in data.get('platforms', []):
-            self.platforms.append(pygame.Rect(plat_data[0], plat_data[1], plat_data[2], plat_data[3]))
+        with self.lock:
+            self.player_id = data['player_id']
+            player_dict = data['player']
+            self.my_player = Player(**player_dict)
+            self.players[self.player_id] = player_dict
+            
+            # Recréer les rects des plateformes
+            for plat_data in data.get('platforms', []):
+                self.platforms.append(pygame.Rect(plat_data[0], plat_data[1], plat_data[2], plat_data[3]))
         
         print(f"[CLIENT] Jointure réussie! ID: {self.player_id}")
     
@@ -215,7 +216,9 @@ class GameRenderer:
                 y += 50
         
         # Instructions
-        if self.client.player_id == 0:  # Premier joeur (host)
+        with self.client.lock:
+            is_host = self.client.player_id == 0
+        if is_host:  # Premier joeur (host)
             instr = self.font_small.render("ESPACE pour démarrer le jeu", True, (0, 100, 0))
         else:
             instr = self.font_small.render("En attente du host...", True, TEXT_COLOR)
@@ -301,15 +304,19 @@ def run_game(server_host, server_port, player_name, player_color):
         print("Impossible de se connecter au serveur")
         return
     
-    # Attendre la confirmation de jointure
+    # Attendre la confirmation de jointure (avec lock pour éviter race condition)
     import time
-    timeout = time.time() + 5
-    while not client.player_id and time.time() < timeout:
-        time.sleep(0.1)
+    timeout = time.time() + 10
+    while time.time() < timeout:
+        with client.lock:
+            if client.player_id is not None:
+                break
+        time.sleep(0.05)
     
-    if not client.player_id:
-        print("Timeout de connexion")
-        return
+    with client.lock:
+        if client.player_id is None:
+            print("[ERREUR] Timeout de connexion au serveur")
+            return
     
     renderer = GameRenderer(client)
     renderer.run()
