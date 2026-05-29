@@ -23,7 +23,10 @@ python main.py
 
 ### Étape 4: Rejoindre une Partie (CLIENTS)
 1. Appuyez sur **2** pour rejoindre un serveur
-2. Entrez l'adresse IP du serveur (ou "localhost" si sur la même machine)
+2. Entrez l'adresse IP du serveur:
+   - Juste l'IP: `192.168.1.5` (utilise le port 5000 par défaut)
+   - Avec port: `192.168.1.5:5000` (pour un port personnalisé)
+   - Pour la machine locale: `localhost` ou `127.0.0.1`
 3. Appuyez sur **ENTRÉE**
 4. Entrez votre pseudo (différent du host si possible)
 5. Sélectionnez votre couleur (UNE COULEUR DIFFÉRENTE du host)

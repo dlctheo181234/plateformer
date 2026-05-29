@@ -140,10 +140,13 @@ class MenuUI:
         self.screen.blit(title, (50, 50))
         
         info = self.font_small.render("Entrez l'adresse IP du serveur:", True, TEXT_COLOR)
-        self.screen.blit(info, (50, 150))
+        self.screen.blit(info, (50, 120))
+        
+        format_info = self.font_small.render("Format: IP ou IP:PORT (ex: 192.168.1.5:5000)", True, (100, 100, 100))
+        self.screen.blit(format_info, (50, 150))
         
         # Champ d'input
-        input_rect = pygame.Rect(50, 200, 300, 40)
+        input_rect = pygame.Rect(50, 200, 400, 40)
         pygame.draw.rect(self.screen, (255, 255, 255), input_rect)
         pygame.draw.rect(self.screen, TEXT_COLOR, input_rect, 2)
         
@@ -217,9 +220,22 @@ class MenuUI:
             run_game("localhost", DEFAULT_PORT, self.player_name, self.player_color)
         else:
             # Mode client
-            host = self.input_text if self.input_text else "localhost"
+            host_input = self.input_text if self.input_text else "localhost"
+            
+            # Parser "IP:PORT" ou juste "IP"
+            if ":" in host_input:
+                try:
+                    host, port_str = host_input.rsplit(":", 1)
+                    port = int(port_str)
+                except ValueError:
+                    host = host_input
+                    port = DEFAULT_PORT
+            else:
+                host = host_input
+                port = DEFAULT_PORT
+            
             try:
-                run_game(host, DEFAULT_PORT, self.player_name, self.player_color)
+                run_game(host, port, self.player_name, self.player_color)
             except Exception as e:
                 print(f"Erreur: {e}")
                 self.state = "main_menu"
